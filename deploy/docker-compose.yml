@@ -1,0 +1,10 @@
+services:
+  diffx-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: diffx-internal:3.5.0
+    container_name: diffx-web
+    restart: unless-stopped
+    ports:
+      - "${DIFFX_PORT:-8094}:80"
