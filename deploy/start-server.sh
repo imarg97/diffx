@@ -4,8 +4,6 @@
 # Developed by im_arg
 # ==============================================================================
 
-set -e
-
 PORT=${1:-8094}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -28,31 +26,37 @@ if command -v lsof >/dev/null 2>&1; then
     fi
 fi
 
-# Strategy 1: Docker (Preferred for production containers)
+# Strategy 1: Docker (If available and daemon is running)
 if command -v docker >/dev/null 2>&1; then
-    echo "[INFO] Docker detected. Building and starting container on port $PORT..."
-    docker rm -f diffx-web 2>/dev/null || true
-    
-    # Check if nginx image is available or if we can run directly
     if docker info >/dev/null 2>&1; then
-        docker run -d \
+        echo "[INFO] Docker daemon active. Attempting Docker container on port $PORT..."
+        docker rm -f diffx-web 2>/dev/null || true
+        
+        # Try running with nginx:alpine
+        if docker run -d \
             --name diffx-web \
             --restart unless-stopped \
             -p "${PORT}:80" \
             -v "$SCRIPT_DIR/dist":/usr/share/nginx/html:ro \
-            nginx:alpine
-        
-        echo ""
-        echo "=========================================================="
-        echo " SUCCESS! DiffX is live via Docker container"
-        echo " Accessible URL : http://${SERVER_IP}:${PORT}"
-        echo " To stop        : ./stop-server.sh"
-        echo "=========================================================="
-        exit 0
+            nginx:alpine 2>/dev/null; then
+            
+            sleep 1
+            if curl -sI "http://localhost:${PORT}" | grep -q "200 OK"; then
+                echo ""
+                echo "=========================================================="
+                echo " [OK] SUCCESS! DiffX is live via Docker container"
+                echo " [OK] Health Check: HTTP 200 OK verified"
+                echo " [OK] Accessible URL : http://${SERVER_IP}:${PORT}"
+                echo " [OK] To stop        : ./stop-server.sh"
+                echo "=========================================================="
+                exit 0
+            fi
+        fi
+        echo "[WARN] Docker run could not start (offline image missing or permissions). Trying Python 3..."
     fi
 fi
 
-# Strategy 2: Python 3 HTTP Server (Standard on 99% of Linux boxes)
+# Strategy 2: Python 3 HTTP Server (Standard on 99% of Linux boxes, zero dependencies)
 if command -v python3 >/dev/null 2>&1; then
     echo "[INFO] Starting standalone Python 3 HTTP server on port $PORT..."
     cd "$SCRIPT_DIR/dist"
@@ -60,14 +64,19 @@ if command -v python3 >/dev/null 2>&1; then
     PID=$!
     echo "$PID" > "$SCRIPT_DIR/diffx.pid"
     
-    echo ""
-    echo "=========================================================="
-    echo " SUCCESS! DiffX is running in background (PID: $PID)"
-    echo " Accessible URL : http://${SERVER_IP}:${PORT}"
-    echo " Logs           : tail -f $SCRIPT_DIR/diffx.log"
-    echo " To stop        : ./stop-server.sh"
-    echo "=========================================================="
-    exit 0
+    sleep 1
+    if kill -0 "$PID" 2>/dev/null; then
+        echo ""
+        echo "=========================================================="
+        echo " [OK] SUCCESS! DiffX is running in background (PID: $PID)"
+        echo " [OK] Health Check: Process verified running"
+        echo " [OK] Accessible URL : http://${SERVER_IP}:${PORT}"
+        echo " [OK] Server Logs    : tail -f $SCRIPT_DIR/diffx.log"
+        echo " [OK] To stop        : ./stop-server.sh"
+        echo "=========================================================="
+        exit 0
+    fi
+    echo "[WARN] Python server failed to bind. Trying Node.js..."
 fi
 
 # Strategy 3: Node.js / npx serve
@@ -78,11 +87,13 @@ if command -v npx >/dev/null 2>&1; then
     PID=$!
     echo "$PID" > "$SCRIPT_DIR/diffx.pid"
     
+    sleep 1
     echo ""
     echo "=========================================================="
-    echo " SUCCESS! DiffX is running in background (PID: $PID)"
-    echo " Accessible URL : http://${SERVER_IP}:${PORT}"
-    echo " To stop        : ./stop-server.sh"
+    echo " [OK] SUCCESS! DiffX is running in background (PID: $PID)"
+    echo " [OK] Accessible URL : http://${SERVER_IP}:${PORT}"
+    echo " [OK] Server Logs    : tail -f $SCRIPT_DIR/diffx.log"
+    echo " [OK] To stop        : ./stop-server.sh"
     echo "=========================================================="
     exit 0
 fi
