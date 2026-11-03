@@ -19,6 +19,7 @@ interface HomeViewProps {
   recentList: RecentComparison[];
   onOpenRecent: (item: RecentComparison) => void;
   onClearRecent: () => void;
+  isWeb?: boolean;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -26,6 +27,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   recentList,
   onOpenRecent,
   onClearRecent,
+  isWeb = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [newSessionsOpen, setNewSessionsOpen] = useState(true);
@@ -72,6 +74,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   >
                     <Folder className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
                     <span>Folder Compare</span>
+                    {isWeb && (
+                      <span className="px-1 py-0.2 text-[8px] font-semibold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 ml-auto">
+                        App Only
+                      </span>
+                    )}
                   </div>
                   <div
                     onClick={() => onNavigate('text')}
@@ -185,11 +192,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   <div className="absolute top-4 left-5 w-14 h-12 rounded bg-[#f5bc4b] shadow-md border border-[#c48820] flex items-center justify-center" />
                   <Folder className="w-10 h-10 text-white fill-white relative z-10 opacity-80" />
                 </div>
-                <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                  Folder Compare
+                <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 flex items-center space-x-1">
+                  <span>Folder Compare</span>
+                  {isWeb && (
+                    <span className="px-1 py-0.2 text-[8px] font-semibold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                      App Only
+                    </span>
+                  )}
                 </span>
                 <span className="text-[10px] text-neutral-400 text-center mt-0.5">
-                  Dual-pane synchronized explorer
+                  {isWeb ? 'Requires Desktop Application' : 'Dual-pane synchronized explorer'}
                 </span>
               </div>
 
@@ -279,7 +291,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <div>
               <div className="font-semibold uppercase tracking-wider text-[11px] mb-1 text-sky-400 dark:text-sky-300">
-                DIFFX SUITE v3.5.0
+                DIFFX SUITE v3.6.0
               </div>
               <div className="text-[11px] text-slate-300 dark:text-neutral-400 leading-tight">
                 Designed for high-performance file, folder, and configuration comparison.

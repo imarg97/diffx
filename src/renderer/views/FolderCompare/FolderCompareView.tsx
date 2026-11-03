@@ -13,6 +13,7 @@ import {
   Equal,
   ChevronLeft,
   Home,
+  AlertCircle,
 } from 'lucide-react';
 import {
   ComparisonEntry,
@@ -27,6 +28,7 @@ import {
   StatusFilter,
 } from '@shared/comparison-engine/filter-sort.js';
 import { ConfirmModalConfig } from '../../components/ConfirmModal.js';
+import { NavigationTab } from '../../components/Header.js';
 
 interface FolderCompareViewProps {
   leftFolder: string;
@@ -37,6 +39,9 @@ interface FolderCompareViewProps {
   onNavigateHome?: () => void;
   onRequestConfirm: (config: ConfirmModalConfig) => void;
   onUpdateStatus: (text: string, count?: number, durationMs?: number) => void;
+  isWeb?: boolean;
+  onNavigateTab?: (tab: NavigationTab) => void;
+  onShowWebNotice?: () => void;
 }
 
 export const FolderCompareView: React.FC<FolderCompareViewProps> = ({
@@ -48,6 +53,9 @@ export const FolderCompareView: React.FC<FolderCompareViewProps> = ({
   onNavigateHome,
   onRequestConfirm,
   onUpdateStatus,
+  isWeb = false,
+  onNavigateTab,
+  onShowWebNotice,
 }) => {
   // Options state
   const [options, setOptions] = useState<FolderComparisonOptions>({
@@ -111,6 +119,10 @@ export const FolderCompareView: React.FC<FolderCompareViewProps> = ({
   };
 
   const handleDropToSide = (paths: string[], targetSide: 'left' | 'right') => {
+    if (isWeb) {
+      onShowWebNotice?.();
+      return;
+    }
     if (!paths.length) return;
     if (paths.length >= 2) {
       onSetLeftFolder(paths[0]);
@@ -196,6 +208,10 @@ export const FolderCompareView: React.FC<FolderCompareViewProps> = ({
   }, [leftFolder, rightFolder]);
 
   const handlePickLeft = async () => {
+    if (isWeb) {
+      onShowWebNotice?.();
+      return;
+    }
     if (window.diffxAPI) {
       const selected = await window.diffxAPI.selectDirectory(leftFolder, 'left');
       if (selected) onSetLeftFolder(selected);
@@ -203,6 +219,10 @@ export const FolderCompareView: React.FC<FolderCompareViewProps> = ({
   };
 
   const handlePickRight = async () => {
+    if (isWeb) {
+      onShowWebNotice?.();
+      return;
+    }
     if (window.diffxAPI) {
       const selected = await window.diffxAPI.selectDirectory(rightFolder, 'right');
       if (selected) onSetRightFolder(selected);
@@ -614,6 +634,32 @@ export const FolderCompareView: React.FC<FolderCompareViewProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-white dark:bg-black text-neutral-900 dark:text-neutral-100 overflow-hidden font-sans">
+      {/* Web Limitation Notice Banner */}
+      {isWeb && (
+        <div className="bg-amber-500/10 border-b border-amber-500/30 px-3 py-2 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 flex-shrink-0">
+          <div className="flex items-center space-x-2 min-w-0">
+            <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span className="truncate">
+              <strong>Web Limitation:</strong> This folder compare feature does not work on the web app. Please download and install the application on your computer to access this feature.
+            </span>
+          </div>
+          <div className="flex items-center space-x-1.5 flex-shrink-0 ml-3">
+            <button
+              onClick={() => onNavigateTab?.('text')}
+              className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-medium text-[11px] transition cursor-pointer shadow-xs"
+            >
+              Use Text Compare
+            </button>
+            <button
+              onClick={() => onNavigateTab?.('structured')}
+              className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-[11px] transition cursor-pointer shadow-xs"
+            >
+              Use Config & XML
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 1. Iconic Beyond Compare Dual Address Bars (Strict 50/50 Split) */}
       <div className="bg-[#f6f6f6] dark:bg-[#0c0c0c] border-b border-[#d0d0d0] dark:border-neutral-800 p-1 flex items-center space-x-1.5 flex-shrink-0 w-full max-w-full overflow-hidden">
         {/* Left Folder Address Box (supports drag & drop) */}

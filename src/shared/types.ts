@@ -183,6 +183,7 @@ export interface DiffxPreloadAPI {
   openInSystemExplorer: (targetPath: string) => Promise<boolean>;
   getAppVersion: () => Promise<string>;
   getPlatform: () => Promise<string>;
+  isBrowser?: boolean;
 }
 
 declare global {

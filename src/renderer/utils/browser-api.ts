@@ -413,9 +413,15 @@ export function createBrowserFallbackAPI(): DiffxPreloadAPI {
     },
 
     openInSystemExplorer: async () => true,
-    getAppVersion: async () => '3.5.0 (Security Hardened Web Release)',
+    getAppVersion: async () => '3.6.0 (Security Hardened Web Release)',
     getPlatform: async () => 'browser',
+    isBrowser: true,
   };
+}
+
+export function isBrowserEnvironment(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !window.diffxAPI || Boolean(window.diffxAPI.isBrowser);
 }
 
 function createSampleWebComparison(

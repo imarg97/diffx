@@ -60,6 +60,7 @@ interface HeaderProps {
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   onOpenShortcuts: () => void;
+  isWeb?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -68,6 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
   theme,
   onToggleTheme,
   onOpenShortcuts,
+  isWeb = false,
 }) => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const menuBarRef = useRef<HTMLDivElement>(null);
@@ -119,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
               DiffX
             </span>
             <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30">
-              v3.5.0
+              v3.6.0
             </span>
             <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-normal">
               • {tabLabels[activeTab]}
@@ -137,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
               Session
             </button>
             {activeMenu === 'session' && (
-              <div className="absolute left-0 top-full mt-0.5 w-56 bg-white dark:bg-[#141414] border border-[#b8b8b8] dark:border-neutral-800 rounded shadow-lg py-1 text-xs z-50">
+              <div className="absolute left-0 top-full mt-0.5 w-60 bg-white dark:bg-[#141414] border border-[#b8b8b8] dark:border-neutral-800 rounded shadow-lg py-1 text-xs z-50">
                 <div className="px-3 py-1 font-semibold text-[10px] uppercase text-neutral-400">
                   New Comparison
                 </div>
@@ -148,6 +150,11 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="flex items-center space-x-2">
                     <FolderGit2 className="w-3.5 h-3.5 text-amber-500" />
                     <span>Folder Compare</span>
+                    {isWeb && (
+                      <span className="px-1 py-0.2 text-[8px] font-semibold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                        App Only
+                      </span>
+                    )}
                   </span>
                   <span className="text-[10px] opacity-60 font-mono">Ctrl+1</span>
                 </button>
@@ -217,10 +224,17 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <button
                   onClick={() => handleAction(() => onSelectTab('folder'))}
-                  className="w-full text-left px-3 py-1.5 hover:bg-blue-600 hover:text-white flex items-center space-x-2"
+                  className="w-full text-left px-3 py-1.5 hover:bg-blue-600 hover:text-white flex items-center justify-between"
                 >
-                  <FolderGit2 className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Open Folders...</span>
+                  <span className="flex items-center space-x-2">
+                    <FolderGit2 className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Open Folders...</span>
+                  </span>
+                  {isWeb && (
+                    <span className="px-1 py-0.2 text-[8px] font-semibold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                      App Only
+                    </span>
+                  )}
                 </button>
                 <div className="my-1 border-t border-neutral-200 dark:border-neutral-800" />
                 <button
@@ -484,7 +498,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="my-1 border-t border-neutral-200 dark:border-neutral-800" />
                 <div className="px-3 py-1.5 text-[11px] text-neutral-500">
-                  DiffX Comparison Suite v3.5.0<br />
+                  DiffX Comparison Suite v3.6.0<br />
                   Developed by im_arg
                 </div>
               </div>
@@ -527,7 +541,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center space-x-1">
           <button
             onClick={() => onSelectTab('folder')}
-            title="Folder & Directory Comparison (Ctrl+1)"
+            title={isWeb ? 'Folder Compare (Requires Desktop Application)' : 'Folder & Directory Comparison (Ctrl+1)'}
             className={`flex items-center space-x-1.5 px-3 py-1 rounded text-xs transition cursor-pointer ${
               activeTab === 'folder'
                 ? 'bg-white dark:bg-[#151515] text-blue-600 dark:text-blue-400 font-semibold shadow-xs border-b-2 border-blue-500'
@@ -536,6 +550,11 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <FolderGit2 className="w-3.5 h-3.5 text-amber-500" />
             <span>Folder Compare</span>
+            {isWeb && (
+              <span className="px-1 py-0.2 text-[8px] font-semibold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 ml-0.5">
+                App Only
+              </span>
+            )}
             <span className="text-[10px] opacity-50 font-mono ml-1">Ctrl+1</span>
           </button>
 

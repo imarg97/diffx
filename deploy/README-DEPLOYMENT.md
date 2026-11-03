@@ -1,4 +1,4 @@
-# DiffX v3.5.0 — Mavenir Internal Deployment Guide
+# DiffX v3.6.0 — Mavenir Internal Deployment Guide
 
 This package contains everything needed to deploy DiffX on Mavenir's internal network (e.g. `10.10.190.24` or any internal lab VM / Docker host).
 
@@ -6,19 +6,19 @@ This package contains everything needed to deploy DiffX on Mavenir's internal ne
 
 ## Quick Start (1 Command)
 
-To run DiffX on port `8094` (or any custom port):
+To run DiffX on port `8097` (or any custom port):
 
 ```bash
-# Default port 8094
+# Default port 8097 (verified free on 10.10.190.24)
 ./start-server.sh
 
-# Or specify your desired port
-./start-server.sh 8080
+# Or specify any desired port
+./start-server.sh 8097
 ```
 
 The script automatically detects if **Docker**, **Python 3**, or **Nginx** is present, starts DiffX in the background, and prints your internal URL:
 ```
-http://<SERVER_IP>:8094
+http://10.10.190.24:8097
 ```
 
 To stop the server at any time:
@@ -36,13 +36,13 @@ To stop the server at any time:
 docker compose up -d
 
 # Or run directly with docker run:
-docker run -d --name diffx-web --restart unless-stopped -p 8094:80 -v $(pwd)/dist:/usr/share/nginx/html:ro nginx:alpine
+docker run -d --name diffx-web --restart unless-stopped -p 8097:80 -v $(pwd)/dist:/usr/share/nginx/html:ro nginx:alpine
 ```
 
 ### Option 2: Standalone Linux Server (Python 3)
 ```bash
 cd dist
-nohup python3 -m http.server 8094 > ../diffx.log 2>&1 &
+nohup python3 -m http.server 8097 > ../diffx.log 2>&1 &
 ```
 
 ### Option 3: Standard Enterprise Nginx

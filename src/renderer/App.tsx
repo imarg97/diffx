@@ -3,16 +3,29 @@ import { Header, NavigationTab } from './components/Header.js';
 import { StatusBar } from './components/StatusBar.js';
 import { ConfirmModal, ConfirmModalConfig } from './components/ConfirmModal.js';
 import { ShortcutsModal } from './components/ShortcutsModal.js';
+import { WebFolderNoticeModal } from './components/WebFolderNoticeModal.js';
 import { FolderCompareView } from './views/FolderCompare/FolderCompareView.js';
 import { TextCompareView } from './views/TextCompare/TextCompareView.js';
 import { StructuredCompareView } from './views/StructuredCompare/StructuredCompareView.js';
 import { HomeView } from './views/Home/HomeView.js';
 import { SettingsView } from './views/Settings/SettingsView.js';
 import { AppSettings, RecentComparison } from '@shared/types.js';
+import { isBrowserEnvironment } from './utils/browser-api.js';
 
 export const App: React.FC = () => {
-  // Navigation & Theme
-  const [activeTab, setActiveTab] = useState<NavigationTab>('folder');
+  // Environment Detection (Desktop vs Web Browser)
+  const [isWeb, setIsWeb] = useState<boolean>(() => isBrowserEnvironment());
+
+  useEffect(() => {
+    if (window.diffxAPI?.getPlatform) {
+      window.diffxAPI.getPlatform().then((p) => {
+        setIsWeb(p === 'browser');
+      });
+    }
+  }, []);
+
+  // Navigation & Theme (default to 'text' in web browser mode since folder compare is desktop-only)
+  const [activeTab, setActiveTab] = useState<NavigationTab>(() => (isBrowserEnvironment() ? 'text' : 'folder'));
 
   // Initialize theme from storage (default to 'dark' pitch black)
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -65,6 +78,15 @@ export const App: React.FC = () => {
     onCancel: () => {},
   });
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [webFolderModalOpen, setWebFolderModalOpen] = useState(false);
+
+  const handleSelectTab = (tab: NavigationTab) => {
+    if (tab === 'folder' && isWeb) {
+      setWebFolderModalOpen(true);
+      return;
+    }
+    setActiveTab(tab);
+  };
 
   // App Settings
   const [settings, setSettings] = useState<AppSettings>(() => {
@@ -136,6 +158,10 @@ export const App: React.FC = () => {
 
   const handleOpenRecent = (item: RecentComparison) => {
     if (item.type === 'folder') {
+      if (isWeb) {
+        setWebFolderModalOpen(true);
+        return;
+      }
       setFolderLeftPath(item.leftPath);
       setFolderRightPath(item.rightPath);
       setActiveTab('folder');
@@ -182,7 +208,11 @@ export const App: React.FC = () => {
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey) {
         if (e.key === '1') {
           e.preventDefault();
-          setActiveTab('folder');
+          if (isWeb) {
+            setWebFolderModalOpen(true);
+          } else {
+            setActiveTab('folder');
+          }
         } else if (e.key === '2') {
           e.preventDefault();
           setActiveTab('text');
@@ -201,14 +231,15 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isWeb]);
 
   return (
     <div className={`h-full w-full flex flex-col bg-white dark:bg-black text-neutral-900 dark:text-neutral-100 ${theme === 'dark' ? 'dark' : ''}`}>
       {/* Header Shell */}
       <Header
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={handleSelectTab}
+        isWeb={isWeb}
         theme={theme}
         onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
         onOpenShortcuts={() => setShortcutsOpen(true)}
@@ -232,6 +263,9 @@ export const App: React.FC = () => {
             onNavigateHome={() => setActiveTab('home')}
             onRequestConfirm={(cfg) => setConfirmConfig(cfg)}
             onUpdateStatus={handleUpdateStatus}
+            isWeb={isWeb}
+            onNavigateTab={handleSelectTab}
+            onShowWebNotice={() => setWebFolderModalOpen(true)}
           />
         )}
 
@@ -275,10 +309,11 @@ export const App: React.FC = () => {
 
         {activeTab === 'home' && (
           <HomeView
-            onNavigate={setActiveTab}
+            onNavigate={handleSelectTab}
             recentList={recentList}
             onOpenRecent={handleOpenRecent}
             onClearRecent={handleClearRecent}
+            isWeb={isWeb}
           />
         )}
 
@@ -316,6 +351,16 @@ export const App: React.FC = () => {
       <ShortcutsModal
         isOpen={shortcutsOpen}
         onClose={() => setShortcutsOpen(false)}
+      />
+
+      {/* Web Folder Notice Modal */}
+      <WebFolderNoticeModal
+        isOpen={webFolderModalOpen}
+        onClose={() => setWebFolderModalOpen(false)}
+        onSwitchTab={(tab) => {
+          setWebFolderModalOpen(false);
+          setActiveTab(tab);
+        }}
       />
     </div>
   );
