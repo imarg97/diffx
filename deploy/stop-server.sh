@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# DiffX v3.5.0 — Stop Server Script
+# DiffX v3.6.0 — Stop Server Script
 # ==============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +13,16 @@ if command -v docker >/dev/null 2>&1; then
         echo "Stopping Docker container diffx-web..."
         docker stop diffx-web && docker rm diffx-web
         echo "Docker container stopped."
+        exit 0
+    fi
+fi
+
+# Stop Podman if running
+if command -v podman >/dev/null 2>&1; then
+    if podman ps -q -f name=diffx-web | grep -q .; then
+        echo "Stopping Podman container diffx-web..."
+        podman stop diffx-web && podman rm diffx-web
+        echo "Podman container stopped."
         exit 0
     fi
 fi
